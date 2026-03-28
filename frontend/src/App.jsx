@@ -1,11 +1,11 @@
 import Navbar from "./components/Navbar";
 
-export default function(){
-  return(
-    <div>
-      
-
-      <Navbar/>
-    </div>
-  );
+export default function App(){
+    return(
+        <div className={'sm:ml-64'}>
+            <div className="hidden sm:block">
+                <Navbar />
+            </div>
+        </div>
+    );
 }
