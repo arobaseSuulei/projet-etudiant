@@ -4,7 +4,7 @@ const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
-// Créer un commentaire (avec possibilité de répondre à un autre commentaire)
+// Créer un commentaire (avec possibilité de répondre)
 router.post('/publication/:id_publication', authenticateToken, async (req, res) => {
   const { id_publication } = req.params;
   const { commentaire, id_commentaire_parent } = req.body;
@@ -27,28 +27,8 @@ router.post('/publication/:id_publication', authenticateToken, async (req, res) 
   res.status(201).json({ message: 'Commentaire ajouté', commentaire: data[0] });
 });
 
-// Lire tous les commentaires d'une publication (version simple)
+// Lire les commentaires d'une publication avec arborescence
 router.get('/publication/:id_publication', async (req, res) => {
-  const { id_publication } = req.params;
-
-  const { data, error } = await supabase
-    .from('commentaires')
-    .select(`
-      *,
-      etudiants (nom_etudiant, prenom_etudiant)
-    `)
-    .eq('id_publication', id_publication)
-    .order('date_commentaire', { ascending: true });
-
-  if (error) {
-    return res.status(400).json({ error: error.message });
-  }
-
-  res.json({ commentaires: data });
-});
-
-// Lire les commentaires d'une publication avec leurs réponses (structure arborescente)
-router.get('/publication/:id_publication/arborescence', async (req, res) => {
   const { id_publication } = req.params;
 
   const { data, error } = await supabase
@@ -64,7 +44,7 @@ router.get('/publication/:id_publication/arborescence', async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
 
-  // Organiser les commentaires en arborescence
+  // Organisation en arborescence
   const commentairesMap = {};
   const commentairesArborescence = [];
 
