@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function Navbar() {
     return (
-        <div className="hidden sm:fixed left-0 top-0 h-screen w-64 text-white  sm:flex flex-col gap-4 py-10 border-r border-gray-200">
+        <div className="hidden sm:fixed left-0 top-0 h-screen w-40 text-white  sm:flex flex-col gap-4 py-10 border-r  border-gray-200">
 
 
 
@@ -13,7 +13,7 @@ export default function Navbar() {
 
 
 
-            <p className="px-4 mb-4">
+            <p className="px-1 mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
                      stroke="currentColor" className="size-6">
                     <path strokeLinecap="round" strokeLinejoin="round"
