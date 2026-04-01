@@ -1,5 +1,7 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const supabase = require('../supabase');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
@@ -16,12 +18,23 @@ router.post('/connexion', async (req, res) => {
     return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
   }
 
-  if (data.password_etudiant !== password) {
+  // Vérifier le mot de passe hashé
+  const validPassword = await bcrypt.compare(password, data.password_etudiant);
+  
+  if (!validPassword) {
     return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
   }
 
+  // Générer un token JWT
+  const token = jwt.sign(
+    { id: data.id_etudiant, email: data.mail_etudiant },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+
   res.json({ 
     message: 'Connexion réussie', 
+    token: token,
     user: { 
       id: data.id_etudiant, 
       nom: data.nom_etudiant, 
@@ -44,12 +57,15 @@ router.post('/inscription', async (req, res) => {
     return res.status(400).json({ error: 'Cet email est déjà utilisé' });
   }
 
-  // Créer le nouvel étudiant
+  // Hasher le mot de passe
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Créer le nouvel étudiant avec mot de passe hashé
   const { data, error } = await supabase
     .from('etudiants')
     .insert([{
       mail_etudiant: email,
-      password_etudiant: password,
+      password_etudiant: hashedPassword,
       num_etudiant: num_etudiant,
       nom_etudiant: nom,
       prenom_etudiant: prenom,
