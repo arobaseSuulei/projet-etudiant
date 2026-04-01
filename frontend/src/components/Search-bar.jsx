@@ -1,6 +1,6 @@
 export default function SearchBar(){
     return (
-        <div>
+        <div className={'flex text-white items-center justify-center gap-4'}>
             <div
                 className="text-white  pt-2 sm:hidden items-center justify-end flex text-xs gap-2 fixed sm:static top-0 left-0 w-full">
 
@@ -15,7 +15,13 @@ export default function SearchBar(){
                 </nav>
 
 
+
+
+
             </div>
+
+
+
         </div>
     );
 }
