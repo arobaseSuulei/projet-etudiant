@@ -25,24 +25,21 @@ router.post('/', authenticateToken, async (req, res) => {
   res.status(201).json({ message: 'Publication créée', publication: data[0] });
 });
 
-// Lire une publication spécifique
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
-
+// Lire toutes les publications
+router.get('/', async (req, res) => {
   const { data, error } = await supabase
     .from('publications')
     .select(`
       *,
       etudiants (nom_etudiant, prenom_etudiant)
     `)
-    .eq('id_publication', id)
-    .single();
+    .order('date_publication', { ascending: false });
 
-  if (error || !data) {
-    return res.status(404).json({ error: 'Publication non trouvée' });
+  if (error) {
+    return res.status(400).json({ error: error.message });
   }
 
-  res.json({ publication: data });
+  res.json({ publications: data });
 });
 
 module.exports = router;
