@@ -35,9 +35,7 @@ export default function PostCard({ post }) {
                         <p style={{color: 'white', fontWeight: '500', fontSize: '14px', margin: 0}}>
                             {post.etudiants?.prenom_etudiant} {post.etudiants?.nom_etudiant}
                         </p>
-                        <p style={{color: '#8e8e93', fontSize: '12px', margin: 0}}>
-                            {heureDepuis(post.description)}
-                        </p>
+
                     </div>
                 </div>
 
