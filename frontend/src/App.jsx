@@ -9,17 +9,22 @@ import Connexion from "./Connexion.jsx";
 import Inscription from "./Inscription.jsx";
 import NavbarPhone from "./components/Navbar-phone.jsx";
 import Commentaires from "./Commentaires.jsx";
-
+import PublierModal from "./components/PublierModals.jsx";
 
 export default function App() {
     const [token, setToken] = useState(localStorage.getItem("token"));
-
-
+    const [showPublier, setShowPublier] = useState(false);
 
     return (
         <Router>
-            {token && <Navbar />}
-            {token && <NavbarPhone />}
+            {token && <Navbar onPublier={() => setShowPublier(true)} />}
+            {token && <NavbarPhone onPublier={() => setShowPublier(true)} />}
+            {showPublier && (
+                <PublierModal
+                    onClose={() => setShowPublier(false)}
+                    onPublished={() => setShowPublier(false)}
+                />
+            )}
             <main className={token ? "sm:ml-40 min-h-screen bg-[#1c1c1e]" : "min-h-screen bg-[#1c1c1e]"}>
                 <Routes>
                     <Route path="/connexion" element={<Connexion onLogin={() => setToken(localStorage.getItem("token"))} />} />

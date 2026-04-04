@@ -8,15 +8,26 @@ export default function PostCard({ post, onCommentClick }) {
         return `${jours}j`;
     };
 
+    console.log(post.etudiants);
+
     return (
         <div className="w-full md:max-w-2xl bg-[#2c2c2e] rounded-3xl p-5">
 
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#5e5ce6] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                        {post.etudiants?.prenom_etudiant?.[0]}{post.etudiants?.nom_etudiant?.[0]}
-                    </div>
+                    {post.etudiants?.photo_profil ? (
+                        <img
+                            src={post.etudiants.photo_profil}
+                            alt="photo profil"
+                            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                        />
+                        
+                    ) : (
+                        <div className="w-10 h-10 rounded-full bg-[#5e5ce6] flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                            {post.etudiants?.prenom_etudiant?.[0]}{post.etudiants?.nom_etudiant?.[0]}
+                        </div>
+                    )}
                     <p className="text-white font-medium text-sm">
                         {post.etudiants?.prenom_etudiant} {post.etudiants?.nom_etudiant}
                     </p>
