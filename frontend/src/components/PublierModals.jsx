@@ -25,6 +25,10 @@ export default function PublierModal({ onClose, onPublished }) {
         });
 
         const data = await res.json();
+
+        console.log("status :", res.status);
+        console.log("réponse :", data);
+
         setLoading(false);
 
         if (!res.ok) {
