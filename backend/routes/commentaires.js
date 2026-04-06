@@ -64,4 +64,76 @@ router.get('/publication/:id_publication', async (req, res) => {
   res.json({ commentaires: commentairesArborescence });
 });
 
+// Modifier un commentaire (uniquement si on est l'auteur)
+router.put('/:id_commentaire', authenticateToken, async (req, res) => {
+  const { id_commentaire } = req.params;
+  const { commentaire } = req.body;
+  const userId = req.user.id;
+
+  // Vérifier que l'utilisateur est l'auteur
+  const { data: comment, error: findError } = await supabase
+    .from('commentaires')
+    .select('id_etudiant')
+    .eq('id_commentaire', id_commentaire)
+    .single();
+
+  if (findError || !comment) {
+    return res.status(404).json({ error: 'Commentaire non trouvé' });
+  }
+
+  if (comment.id_etudiant !== userId) {
+    return res.status(403).json({ error: 'Vous ne pouvez modifier que vos propres commentaires' });
+  }
+
+  if (!commentaire || commentaire.trim() === '') {
+    return res.status(400).json({ error: 'Le commentaire ne peut pas être vide' });
+  }
+
+  // Modifier le commentaire
+  const { data, error: updateError } = await supabase
+    .from('commentaires')
+    .update({ commentaire: `(modifié)\n${commentaire}` })
+    .eq('id_commentaire', id_commentaire)
+    .select();
+
+  if (updateError) {
+    return res.status(400).json({ error: updateError.message });
+  }
+
+  res.json({ message: 'Commentaire modifié', commentaire: data[0] });
+});
+
+// Supprimer un commentaire (uniquement si on est l'auteur)
+router.delete('/:id_commentaire', authenticateToken, async (req, res) => {
+  const { id_commentaire } = req.params;
+  const userId = req.user.id;
+
+  // Vérifier que l'utilisateur est l'auteur
+  const { data: comment, error: findError } = await supabase
+    .from('commentaires')
+    .select('id_etudiant')
+    .eq('id_commentaire', id_commentaire)
+    .single();
+
+  if (findError || !comment) {
+    return res.status(404).json({ error: 'Commentaire non trouvé' });
+  }
+
+  if (comment.id_etudiant !== userId) {
+    return res.status(403).json({ error: 'Vous ne pouvez supprimer que vos propres commentaires' });
+  }
+
+  // Supprimer le commentaire
+  const { error: deleteError } = await supabase
+    .from('commentaires')
+    .delete()
+    .eq('id_commentaire', id_commentaire);
+
+  if (deleteError) {
+    return res.status(400).json({ error: deleteError.message });
+  }
+
+  res.json({ message: 'Commentaire supprimé' });
+});
+
 module.exports = router;
