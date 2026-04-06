@@ -10,6 +10,7 @@ import Inscription from "./Inscription.jsx";
 import NavbarPhone from "./components/Navbar-phone.jsx";
 import Commentaires from "./Commentaires.jsx";
 import PublierModal from "./components/PublierModals.jsx";
+import Profile from "./Profile.jsx";
 
 export default function App() {
     const [token, setToken] = useState(localStorage.getItem("token"));
@@ -35,6 +36,7 @@ export default function App() {
                     <Route path="/publications/:id/commentaires" element={
                         <ProtectedRoute><Commentaires /></ProtectedRoute>
                     } />
+                    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 </Routes>
             </main>
         </Router>
