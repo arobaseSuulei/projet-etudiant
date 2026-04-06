@@ -4,24 +4,23 @@ const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
-// Envoyer un message privé
+// Envoyer un message privé (avec possibilité de répondre à un message spécifique)
 router.post('/envoyer/:recepteur_id', authenticateToken, async (req, res) => {
   const { recepteur_id } = req.params;
-  const { text_message } = req.body;
+  const { text_message, id_message_parent } = req.body;
   const userId = req.user.id;
 
-  // Vérifier que le message n'est pas vide
   if (!text_message || text_message.trim() === '') {
     return res.status(400).json({ error: 'Le message ne peut pas être vide' });
   }
 
-  // Insérer le message dans la base
   const { data, error } = await supabase
     .from('messages')
     .insert([{
       id_emetteur: userId,
       id_recepteur: recepteur_id,
-      text_message: text_message
+      text_message: text_message,
+      id_message_parent: id_message_parent || null
     }])
     .select();
 
@@ -32,7 +31,7 @@ router.post('/envoyer/:recepteur_id', authenticateToken, async (req, res) => {
   res.status(201).json({ message: 'Message envoyé', data: data[0] });
 });
 
-// Récupérer la conversation avec un utilisateur spécifique
+// Récupérer la conversation (ordre chronologique simple)
 router.get('/conversation/:destinataire_id', authenticateToken, async (req, res) => {
   const { destinataire_id } = req.params;
   const userId = req.user.id;
@@ -55,7 +54,6 @@ router.delete('/:id_message', authenticateToken, async (req, res) => {
   const { id_message } = req.params;
   const userId = req.user.id;
 
-  // Vérifier que l'utilisateur est l'émetteur
   const { data: message, error: findError } = await supabase
     .from('messages')
     .select('id_emetteur')
@@ -70,7 +68,6 @@ router.delete('/:id_message', authenticateToken, async (req, res) => {
     return res.status(403).json({ error: 'Vous ne pouvez supprimer que vos propres messages' });
   }
 
-  // Supprimer le message
   const { error: deleteError } = await supabase
     .from('messages')
     .delete()
@@ -83,12 +80,12 @@ router.delete('/:id_message', authenticateToken, async (req, res) => {
   res.json({ message: 'Message supprimé' });
 });
 
+// Modifier un message (uniquement si on est l'émetteur)
 router.put('/:id_message', authenticateToken, async (req, res) => {
   const { id_message } = req.params;
   const { text_message } = req.body;
   const userId = req.user.id;
 
-  // Vérifier que l'utilisateur est l'émetteur
   const { data: message, error: findError } = await supabase
     .from('messages')
     .select('id_emetteur')
@@ -107,7 +104,6 @@ router.put('/:id_message', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'Le message ne peut pas être vide' });
   }
 
-  // Modifier avec indication (modifié)
   const { data, error: updateError } = await supabase
     .from('messages')
     .update({ text_message: `(modifié)\n${text_message}` })
@@ -120,6 +116,5 @@ router.put('/:id_message', authenticateToken, async (req, res) => {
 
   res.json({ message: 'Message modifié', data: data[0] });
 });
-
 
 module.exports = router;
