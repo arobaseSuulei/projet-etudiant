@@ -6,11 +6,9 @@ export default function TopBar(){
 
 
 
-
-
-
+                    <p>All posts</p>
                 <p>For you</p>
-                <p>Community</p>
+                
 
 
             </div>

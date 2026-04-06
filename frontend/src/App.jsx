@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./ProtectedRoute";
 import Home from "./Home.jsx";
@@ -15,6 +15,7 @@ import Profile from "./Profile.jsx";
 export default function App() {
     const [token, setToken] = useState(localStorage.getItem("token"));
     const [showPublier, setShowPublier] = useState(false);
+    const refreshPostsRef = useRef(null);
 
     return (
         <Router>
@@ -23,14 +24,17 @@ export default function App() {
             {showPublier && (
                 <PublierModal
                     onClose={() => setShowPublier(false)}
-                    onPublished={() => setShowPublier(false)}
+                    onPublished={() => {
+                        setShowPublier(false);
+                        if (refreshPostsRef.current) refreshPostsRef.current();
+                    }}
                 />
             )}
             <main className={token ? "sm:ml-40 min-h-screen bg-[#1c1c1e]" : "min-h-screen bg-[#1c1c1e]"}>
                 <Routes>
                     <Route path="/connexion" element={<Connexion onLogin={() => setToken(localStorage.getItem("token"))} />} />
                     <Route path="/inscription" element={<Inscription />} />
-                    <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                    <Route path="/" element={<ProtectedRoute><Home refreshRef={refreshPostsRef} /></ProtectedRoute>} />
                     <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                     <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
                     <Route path="/publications/:id/commentaires" element={
