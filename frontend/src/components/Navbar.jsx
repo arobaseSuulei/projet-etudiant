@@ -1,21 +1,10 @@
 import { Link } from "react-router-dom";
 
-export default function Navbar() {
+export default function Navbar({ onPublier }) {
     return (
-        <div className="hidden sm:fixed left-0 top-0 h-screen w-40 text-white  sm:flex flex-col gap-4 py-10 border-r  border-gray-200">
+        <div className="hidden sm:fixed left-0 top-0 h-screen w-40 text-white sm:flex flex-col gap-4 py-10 border-r border-gray-200">
 
-
-
-
-
-
-
-
-
-
-            
-
-            <nav className={'flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer  '}>
+            <nav className="flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer">
                 <div className="relative">
                     <Link to="/">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
@@ -24,55 +13,43 @@ export default function Navbar() {
                     </Link>
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full"></div>
                 </div>
-
             </nav>
 
-
-            <nav className={'flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer  '}>
+            <nav className="flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer">
                 <div className="relative">
                     <Link to="/communities">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                             stroke="currentColor" className="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/>
                         </svg>
-
                     </Link>
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full"></div>
                 </div>
-
             </nav>
 
-            <nav className={'flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer  '}>
+            <nav className="flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
                 </svg>
-
             </nav>
 
-            <nav className={'flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer  '}>
+            <nav className="flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer">
                 <div className="relative">
-                    <Link to={'/messages'}>
+                    <Link to="/messages">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
                         </svg>
                     </Link>
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full"></div>
                 </div>
-
             </nav>
 
-
-
-
-
+            {/* Bouton publier */}
+            <nav onClick={onPublier} className="flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+            </nav>
 
         </div>
-
-
-
-
-
-
-)
+    );
 }
