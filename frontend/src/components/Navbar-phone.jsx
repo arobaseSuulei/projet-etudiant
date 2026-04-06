@@ -33,7 +33,7 @@ export default function NavbarPhone({ onPublier }) {
 
             <nav className={'flex items-center gap-3 font-semibold text-lg px-4 py-2 rounded-full cursor-pointer  '}>
                 <div className="relative">
-                    <Link to="/communities">
+                    <Link to="/community">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                              stroke="currentColor" className="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
