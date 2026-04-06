@@ -5,6 +5,7 @@ const authRouter = require('./routes/auth');
 const publicationsRouter = require('./routes/publications'); 
 const commentairesRouter = require('./routes/commentaires');
 const communautesRouter = require('./routes/communautes');
+const messagesInboxRouter = require('./routes/messages_inbox');
 
 
 const app = express();
@@ -15,6 +16,7 @@ app.use('/auth', authRouter);
 app.use('/publications', publicationsRouter);  
 app.use('/commentaires', commentairesRouter);
 app.use('/communautes', communautesRouter);
+app.use('/messages', messagesInboxRouter);
 
 
 app.get('/test', async (req, res) => {
