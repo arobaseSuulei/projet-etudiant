@@ -5,13 +5,14 @@ export default function Messages() {
     const [recherche, setRecherche] = useState('');
     const [resultats, setResultats] = useState([]);
     const [amis, setAmis] = useState([]);
+    const [invitationsRequetes, setInvitationsRequetes] = useState([]);
     const [destinataire, setDestinataire] = useState(null);
     const [messages, setMessages] = useState([]);
     const [texte, setTexte] = useState('');
     const [messageEnCoursModif, setMessageEnCoursModif] = useState(null);
-    const [invitationsEnAttente, setInvitationsEnAttente] = useState([]);
-    const [onglet, setOnglet] = useState('amis'); // 'amis', 'recherche', 'invitations'
+    const [onglet, setOnglet] = useState('amis');
     const [loading, setLoading] = useState(false);
+    const [notification, setNotification] = useState(null);
     
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
@@ -22,12 +23,24 @@ export default function Messages() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // Charger les amis au montage
+    // Charger les données au montage
     useEffect(() => {
         chargerAmis();
-        chargerInvitations();
+        chargerInvitationsRequetes();
     }, []);
 
+    // POLLING : Vérifier les nouvelles invitations toutes les 3 secondes
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (onglet === 'invitations' || !destinataire) {
+                chargerInvitationsRequetesSilencieux();
+            }
+        }, 3000);
+        
+        return () => clearInterval(interval);
+    }, [onglet, destinataire]);
+
+    // Charger la liste des amis (sont_amis = true)
     const chargerAmis = async () => {
         try {
             const res = await fetch(`http://localhost:3000/amis`, {
@@ -42,17 +55,44 @@ export default function Messages() {
         }
     };
 
-    const chargerInvitations = async () => {
+    // Charger les invitations reçues avec notification
+    const chargerInvitationsRequetes = async () => {
         try {
-            const res = await fetch(`http://localhost:3000/invitations/mes-invitations`, {
+            const res = await fetch(`http://localhost:3000/invitations/requetes`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
             if (res.ok) {
-                const enAttente = data.invitations.filter(
-                    inv => inv.statut === 'en_attente' && inv.id_recepteur === user.id
-                );
-                setInvitationsEnAttente(enAttente);
+                const nouvellesInvitations = data.invitations ?? [];
+                const ancienNombre = invitationsRequetes.length;
+                
+                setInvitationsRequetes(nouvellesInvitations);
+                
+                // Notification si nouvelle invitation
+                if (nouvellesInvitations.length > ancienNombre && onglet !== 'invitations') {
+                    const nouvelle = nouvellesInvitations.find(
+                        inv => !invitationsRequetes.find(old => old.id_emetteur === inv.id_emetteur)
+                    );
+                    if (nouvelle) {
+                        setNotification(`📩 Nouvelle invitation de ${nouvelle.etudiants?.prenom_etudiant} ${nouvelle.etudiants?.nom_etudiant}`);
+                        setTimeout(() => setNotification(null), 5000);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Erreur chargement invitations:", error);
+        }
+    };
+
+    // Version silencieuse (sans notification)
+    const chargerInvitationsRequetesSilencieux = async () => {
+        try {
+            const res = await fetch(`http://localhost:3000/invitations/requetes`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setInvitationsRequetes(data.invitations ?? []);
             }
         } catch (error) {
             console.error("Erreur chargement invitations:", error);
@@ -75,10 +115,9 @@ export default function Messages() {
             })
                 .then(res => res.json())
                 .then(data => {
-                    // Filtrer les étudiants déjà amis
                     const amisIds = new Set(amis.map(a => a.id_etudiant));
                     const resultatsFiltres = (data.resultats ?? []).filter(
-                        etudiant => etudiant.id_etudiant !== user.id && !amisIds.has(etudiant.id_etudiant)
+                        etudiant => etudiant.id_etudiant !== user?.id && !amisIds.has(etudiant.id_etudiant)
                     );
                     setResultats(resultatsFiltres);
                     setLoading(false);
@@ -90,11 +129,12 @@ export default function Messages() {
         }, 400);
         
         return () => clearTimeout(timeout);
-    }, [recherche, token, onglet, amis, user.id]);
+    }, [recherche, token, onglet, amis, user?.id]);
 
-    const envoyerInvitation = async (etudiantId) => {
+    // Envoyer une invitation
+    const envoyerInvitation = async (recepteurId) => {
         try {
-            const res = await fetch(`http://localhost:3000/invitations/envoyer/${etudiantId}`, {
+            const res = await fetch(`http://localhost:3000/invitations/envoyer/${recepteurId}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -104,8 +144,9 @@ export default function Messages() {
             
             const data = await res.json();
             if (res.ok) {
-                alert("Invitation envoyée !");
-                setResultats(prev => prev.filter(r => r.id_etudiant !== etudiantId));
+                alert("✅ Invitation envoyée !");
+                setResultats(prev => prev.filter(r => r.id_etudiant !== recepteurId));
+                // Forcer un rafraîchissement des invitations côté destinataire (via polling)
             } else {
                 alert(data.error || "Erreur lors de l'envoi");
             }
@@ -114,10 +155,11 @@ export default function Messages() {
         }
     };
 
-    const accepterInvitation = async (invitationId) => {
+    // Accepter une invitation
+    const accepterInvitation = async (emetteurId) => {
         try {
-            const res = await fetch(`http://localhost:3000/invitations/accepter/${invitationId}`, {
-                method: "POST",
+            const res = await fetch(`http://localhost:3000/invitations/accepter/${emetteurId}`, {
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
@@ -125,19 +167,20 @@ export default function Messages() {
             });
             
             if (res.ok) {
-                alert("Invitation acceptée !");
+                alert("🎉 Invitation acceptée ! Vous êtes maintenant amis");
                 chargerAmis();
-                chargerInvitations();
+                chargerInvitationsRequetes();
             }
         } catch (error) {
             console.error("Erreur acceptation:", error);
         }
     };
 
-    const refuserInvitation = async (invitationId) => {
+    // Refuser une invitation
+    const refuserInvitation = async (emetteurId) => {
         try {
-            const res = await fetch(`http://localhost:3000/invitations/refuser/${invitationId}`, {
-                method: "POST",
+            const res = await fetch(`http://localhost:3000/invitations/refuser/${emetteurId}`, {
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
@@ -146,7 +189,7 @@ export default function Messages() {
             
             if (res.ok) {
                 alert("Invitation refusée");
-                chargerInvitations();
+                chargerInvitationsRequetes();
             }
         } catch (error) {
             console.error("Erreur refus:", error);
@@ -237,6 +280,12 @@ export default function Messages() {
 
     return (
         <div className="flex h-screen bg-[#1c1c1e]">
+            {/* Notification toast */}
+            {notification && (
+                <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg animate-bounce">
+                    {notification}
+                </div>
+            )}
 
             {/* Sidebar gauche */}
             <div className={`${destinataire ? 'hidden sm:flex' : 'flex'} flex-col w-full sm:w-96 border-r border-[#3a3a3c]`}>
@@ -256,14 +305,22 @@ export default function Messages() {
                             Amis ({amis.length})
                         </button>
                         <button
-                            onClick={() => setOnglet('invitations')}
-                            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            onClick={() => {
+                                setOnglet('invitations');
+                                chargerInvitationsRequetes(); // Recharger quand on clique
+                            }}
+                            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors relative ${
                                 onglet === 'invitations' 
                                     ? 'bg-purple-600 text-white' 
                                     : 'bg-[#2c2c2e] text-gray-400 hover:text-white'
                             }`}
                         >
-                            Invitations ({invitationsEnAttente.length})
+                            Invitations
+                            {invitationsRequetes.length > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                    {invitationsRequetes.length}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setOnglet('recherche')}
@@ -325,38 +382,37 @@ export default function Messages() {
                 {/* Liste des invitations reçues */}
                 {onglet === 'invitations' && (
                     <div className="flex-1 overflow-y-auto">
-                        {invitationsEnAttente.length === 0 ? (
+                        {invitationsRequetes.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-16 h-16 text-gray-600">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9" />
                                 </svg>
-                                <p className="text-gray-400 mt-3">Aucune invitation</p>
+                                <p className="text-gray-400 mt-3">Aucune invitation reçue</p>
+                                <p className="text-gray-500 text-sm mt-1">Les invitations apparaîtront ici</p>
                             </div>
                         ) : (
-                            invitationsEnAttente.map(inv => (
-                                <div key={inv.id_invitation} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[#3a3a3c]">
+                            invitationsRequetes.map(inv => (
+                                <div key={inv.id_emetteur} className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[#3a3a3c] hover:bg-[#2c2c2e] transition-colors">
                                     <div className="flex items-center gap-3 flex-1">
-                                        {inv.expediteur?.photo_profil ? (
-                                            <img src={inv.expediteur.photo_profil} className="w-12 h-12 rounded-full object-cover flex-shrink-0" onError={e => e.target.style.display = 'none'} />
-                                        ) : (
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-base font-semibold flex-shrink-0">
-                                                {inv.expediteur?.prenom_etudiant?.[0]}{inv.expediteur?.nom_etudiant?.[0]}
-                                            </div>
-                                        )}
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-base font-semibold flex-shrink-0">
+                                            {inv.etudiants?.prenom_etudiant?.[0]}{inv.etudiants?.nom_etudiant?.[0]}
+                                        </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-white font-medium">{inv.expediteur?.prenom_etudiant} {inv.expediteur?.nom_etudiant}</p>
-                                            <p className="text-yellow-500 text-xs mt-1">Vous a invité à discuter</p>
+                                            <p className="text-white font-medium">
+                                                {inv.etudiants?.prenom_etudiant} {inv.etudiants?.nom_etudiant}
+                                            </p>
+                                            <p className="text-yellow-500 text-xs mt-1">📨 Vous a invité à discuter</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
                                         <button
-                                            onClick={() => accepterInvitation(inv.id_invitation)}
+                                            onClick={() => accepterInvitation(inv.id_emetteur)}
                                             className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
                                         >
                                             Accepter
                                         </button>
                                         <button
-                                            onClick={() => refuserInvitation(inv.id_invitation)}
+                                            onClick={() => refuserInvitation(inv.id_emetteur)}
                                             className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg transition-colors"
                                         >
                                             Refuser
@@ -423,11 +479,9 @@ export default function Messages() {
                 )}
             </div>
 
-            {/* Zone de chat - uniquement si un ami est sélectionné */}
+            {/* Zone de chat */}
             {destinataire ? (
                 <div className="flex flex-col flex-1">
-
-                    {/* Header chat */}
                     <div className="flex items-center gap-3 px-4 py-3 border-b border-[#3a3a3c] bg-[#1c1c1e] sticky top-0 z-10">
                         <button 
                             onClick={() => setDestinataire(null)} 
@@ -449,7 +503,6 @@ export default function Messages() {
                         </div>
                     </div>
 
-                    {/* Messages */}
                     <div className="flex-1 overflow-y-auto flex flex-col gap-2 px-4 py-4">
                         {messages.length === 0 && (
                             <div className="flex flex-col items-center justify-center h-full">
@@ -535,7 +588,6 @@ export default function Messages() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input message */}
                     <div className="flex items-center gap-3 px-4 py-3 border-t border-[#3a3a3c] bg-[#1c1c1e]">
                         <input
                             ref={inputRef}
