@@ -11,6 +11,7 @@ import NavbarPhone from "./components/Navbar-phone.jsx";
 import Commentaires from "./Commentaires.jsx";
 import PublierModal from "./components/PublierModals.jsx";
 import Profile from "./Profile.jsx";
+import MessagesCommunaute from "./MessagesCommunaute.jsx";
 
 export default function App() {
     const [token, setToken] = useState(localStorage.getItem("token"));
@@ -41,6 +42,7 @@ export default function App() {
                         <ProtectedRoute><Commentaires /></ProtectedRoute>
                     } />
                     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                    <Route path="/community/:id_communaute" element={<ProtectedRoute><MessagesCommunaute /></ProtectedRoute>} />
                 </Routes>
             </main>
         </Router>

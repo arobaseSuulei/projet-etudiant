@@ -1,6 +1,9 @@
+// frontend/src/Community.jsx
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Community() {
+    const navigate = useNavigate();
     const [commu, setCommu] = useState([]);
     const [loading, setLoading] = useState(true);
     const [membres, setMembres] = useState([]);
@@ -8,7 +11,7 @@ export default function Community() {
     const [showCreer, setShowCreer] = useState(false);
     const [nom, setNom] = useState('');
     const [description, setDescription] = useState('');
-    const [photoGroupe, setPhotoGroupe] = useState(''); // AJOUT : état pour la photo
+    const [photoGroupe, setPhotoGroupe] = useState('');
     const [erreur, setErreur] = useState('');
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
@@ -72,7 +75,7 @@ export default function Community() {
             body: JSON.stringify({ 
                 nom_communaute: nom, 
                 description_communaute: description,
-                photo_groupe: photoGroupe || null // AJOUT : envoi de la photo
+                photo_groupe: photoGroupe || null
             })
         });
 
@@ -86,7 +89,7 @@ export default function Community() {
         setCommu(prev => [data.communaute, ...prev]);
         setNom('');
         setDescription('');
-        setPhotoGroupe(''); // AJOUT : reset de la photo
+        setPhotoGroupe('');
         setErreur('');
         setShowCreer(false);
     };
@@ -128,8 +131,8 @@ export default function Community() {
             {commu.map(c => (
                 <div
                     key={c.id_communaute}
-                    className="w-full md:max-w-2xl bg-[#2c2c2e] rounded-3xl p-5 flex items-center gap-4 cursor-pointer"
-                    onClick={() => ouvrirMembres(c)}
+                    className="w-full md:max-w-2xl bg-[#2c2c2e] rounded-3xl p-5 flex items-center gap-4 cursor-pointer hover:bg-[#3a3a3c] transition-colors"
+                    onClick={() => navigate(`/community/${c.id_communaute}`)}
                 >
                     <img
                         src={c.photo_groupe}
@@ -157,6 +160,13 @@ export default function Community() {
                                 </svg>
                             </button>
                         )}
+                        
+                        <button
+                            onClick={(e) => { e.stopPropagation(); ouvrirMembres(c); }}
+                            className="text-xs text-gray-400 border border-gray-600 rounded-full px-3 py-1 flex-shrink-0"
+                        >
+                            Membres
+                        </button>
                         
                         {c.est_membre ? (
                             <button
@@ -218,9 +228,13 @@ export default function Community() {
                 </div>
             )}
 
-            {/* Modal créer communauté - AJOUT du champ photo */}
+            {/* Modal créer communauté */}
             {showCreer && (
-                <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-end sm:items-center justify-center" onClick={() => setShowCreer(false)}>
+                <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-end sm:items-center justify-center" onClick={() => {
+                    setShowCreer(false);
+                    setPhotoGroupe('');
+                    setErreur('');
+                }}>
                     <div className="bg-[#2c2c2e] w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl p-5 flex flex-col gap-4" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
                             <button onClick={() => {
@@ -249,7 +263,6 @@ export default function Community() {
                             rows={3}
                             className="bg-[#1c1c1e] text-white text-sm rounded-xl px-4 py-3 outline-none placeholder-gray-500 resize-none"
                         />
-                        {/* AJOUT : Champ pour la photo de profil */}
                         <input
                             type="text"
                             placeholder="URL de la photo de profil (optionnel)"
