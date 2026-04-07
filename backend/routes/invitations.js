@@ -89,26 +89,37 @@ router.put('/accepter/:emetteur_id', authenticateToken, async (req, res) => {
   const { emetteur_id } = req.params;
   const recepteur_id = req.user.id;
 
-  const { data, error } = await supabase
+  const { data: existing, error: findError } = await supabase
     .from('invitations')
-    .update({ 
-      en_attente: false,
-      sont_amis: true 
-    })
+    .select('*')
     .eq('id_emetteur', emetteur_id)
     .eq('id_recepteur', recepteur_id)
-    .eq('en_attente', true)
-    .select();
+    .maybeSingle();
 
-  if (error) {
-    return res.status(400).json({ error: error.message });
+  if (findError) {
+    return res.status(400).json({ error: findError.message });
   }
 
-  if (!data || data.length === 0) {
-    return res.status(404).json({ error: 'Invitation non trouvée ou déjà traitée' });
+  if (!existing) {
+    return res.status(404).json({ error: 'Invitation non trouvée' });
   }
 
-  res.json({ message: 'Invitation acceptée', ami: data[0] });
+  if (existing.sont_amis) {
+    return res.status(400).json({ error: 'Vous êtes déjà amis' });
+  }
+
+  // Accepter l'invitation (ignore les blocages)
+  const { error: updateError } = await supabase
+    .from('invitations')
+    .update({ en_attente: false, sont_amis: true })
+    .eq('id_emetteur', emetteur_id)
+    .eq('id_recepteur', recepteur_id);
+
+  if (updateError) {
+    return res.status(400).json({ error: updateError.message });
+  }
+
+  res.json({ message: 'Invitation acceptée' });
 });
 
 // Refuser une invitation
@@ -116,34 +127,45 @@ router.put('/refuser/:emetteur_id', authenticateToken, async (req, res) => {
   const { emetteur_id } = req.params;
   const recepteur_id = req.user.id;
 
-  const { data, error } = await supabase
+  // Chercher l'invitation sans condition sur en_attente
+  const { data: existing, error: findError } = await supabase
     .from('invitations')
-    .update({ 
-      en_attente: false,
-      sont_amis: false
-    })
+    .select('*')
     .eq('id_emetteur', emetteur_id)
     .eq('id_recepteur', recepteur_id)
-    .eq('en_attente', true)
-    .select();
+    .maybeSingle();
 
-  if (error) {
-    return res.status(400).json({ error: error.message });
+  if (findError) {
+    return res.status(400).json({ error: findError.message });
   }
 
-  if (!data || data.length === 0) {
-    return res.status(404).json({ error: 'Invitation non trouvée ou déjà traitée' });
+  if (!existing) {
+    return res.status(404).json({ error: 'Invitation non trouvée' });
+  }
+
+  if (existing.sont_amis) {
+    return res.status(400).json({ error: 'Vous êtes déjà amis, impossible de refuser' });
+  }
+
+  // Refuser l'invitation
+  const { error: updateError } = await supabase
+    .from('invitations')
+    .update({ en_attente: false, sont_amis: false })
+    .eq('id_emetteur', emetteur_id)
+    .eq('id_recepteur', recepteur_id);
+
+  if (updateError) {
+    return res.status(400).json({ error: updateError.message });
   }
 
   res.json({ message: 'Invitation refusée' });
 });
 
-// Bloquer un utilisateur
+// Bloquer un utilisateur (sans affecter sont_amis)
 router.put('/bloquer/:cible_id', authenticateToken, async (req, res) => {
   const { cible_id } = req.params;
   const userId = req.user.id;
 
-  // Vérifier si une relation existe déjà
   const { data: existing, error: findError } = await supabase
     .from('invitations')
     .select('*')
@@ -155,12 +177,11 @@ router.put('/bloquer/:cible_id', authenticateToken, async (req, res) => {
   }
 
   if (existing) {
-    // Mise à jour selon qui bloque qui
     let updateData = {};
     if (existing.id_emetteur === userId) {
-      updateData = { emetteur_bloque_recepteur: true, sont_amis: false, en_attente: false };
+      updateData = { emetteur_bloque_recepteur: true };  // Ne touche pas à sont_amis
     } else {
-      updateData = { recepteur_bloque_emetteur: true, sont_amis: false, en_attente: false };
+      updateData = { recepteur_bloque_emetteur: true };  // Ne touche pas à sont_amis
     }
 
     const { error: updateError } = await supabase
@@ -173,7 +194,6 @@ router.put('/bloquer/:cible_id', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: updateError.message });
     }
   } else {
-    // Créer une nouvelle entrée avec blocage
     const { error: insertError } = await supabase
       .from('invitations')
       .insert([{
@@ -190,6 +210,45 @@ router.put('/bloquer/:cible_id', authenticateToken, async (req, res) => {
   }
 
   res.json({ message: 'Utilisateur bloqué' });
+});
+
+// Débloquer un utilisateur
+router.put('/debloquer/:cible_id', authenticateToken, async (req, res) => {
+  const { cible_id } = req.params;
+  const userId = req.user.id;
+
+  const { data: existing, error: findError } = await supabase
+    .from('invitations')
+    .select('*')
+    .or(`and(id_emetteur.eq.${userId},id_recepteur.eq.${cible_id}),and(id_emetteur.eq.${cible_id},id_recepteur.eq.${userId})`)
+    .maybeSingle();
+
+  if (findError) {
+    return res.status(400).json({ error: findError.message });
+  }
+
+  if (!existing) {
+    return res.status(404).json({ error: 'Relation non trouvée' });
+  }
+
+  let updateData = {};
+  if (existing.id_emetteur === userId) {
+    updateData = { emetteur_bloque_recepteur: false };
+  } else {
+    updateData = { recepteur_bloque_emetteur: false };
+  }
+
+  const { error: updateError } = await supabase
+    .from('invitations')
+    .update(updateData)
+    .eq('id_emetteur', existing.id_emetteur)
+    .eq('id_recepteur', existing.id_recepteur);
+
+  if (updateError) {
+    return res.status(400).json({ error: updateError.message });
+  }
+
+  res.json({ message: 'Utilisateur débloqué' });
 });
 
 module.exports = router;

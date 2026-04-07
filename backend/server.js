@@ -6,7 +6,9 @@ const publicationsRouter = require('./routes/publications');
 const commentairesRouter = require('./routes/commentaires');
 const communautesRouter = require('./routes/communautes');
 const messagesInboxRouter = require('./routes/messages_inbox');
-
+const invitationsRouter = require('./routes/invitations')
+const amisRouter = require('./routes/amis');
+const rechercherUtilisateurRouter = require('./routes/rechercher_utilisateur');
 
 const app = express();
 app.use(express.json());
@@ -17,6 +19,9 @@ app.use('/publications', publicationsRouter);
 app.use('/commentaires', commentairesRouter);
 app.use('/communautes', communautesRouter);
 app.use('/messages', messagesInboxRouter);
+app.use('/invitations', invitationsRouter);
+app.use('/amis', amisRouter);
+app.use('/recherche', rechercherUtilisateurRouter);
 
 
 app.get('/test', async (req, res) => {
