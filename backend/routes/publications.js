@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
     .from('publications')
     .select(`
       *,
-      etudiants (nom_etudiant, prenom_etudiant)
+      etudiants (nom_etudiant, prenom_etudiant, photo_profil)
     `)
     .order('date_publication', { ascending: false });
 
