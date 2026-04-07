@@ -1,23 +1,25 @@
+// frontend/src/Profile.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const user = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
     const navigate = useNavigate();
 
+    // Récupérer les publications
     useEffect(() => {
         fetch("http://localhost:3000/publications")
             .then(res => res.json())
             .then(data => {
-                const mesPosts = (data.publications ?? []).filter(p => p.id_etudiant === user.id);
+                const mesPosts = (data.publications ?? []).filter(p => p.id_etudiant === user?.id);
                 setPosts(mesPosts);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    }, []);
+    }, [user?.id]);
 
     const seDeconnecter = () => {
         localStorage.clear();
@@ -40,11 +42,24 @@ export default function Profile() {
 
             {/* Header profil */}
             <div className="w-full md:max-w-2xl flex flex-col items-center gap-4 mb-8">
-                <div className="w-24 h-24 rounded-full bg-[#5e5ce6] flex items-center justify-center text-white text-3xl font-semibold">
-                    {user?.nom?.[0]?.toUpperCase()}
-                </div>
+                {/* Photo de profil */}
+                {user?.photo_profil ? (
+                    <img 
+                        src={user.photo_profil} 
+                        className="w-24 h-24 rounded-full object-cover border-2 border-purple-500"
+                        onError={e => e.target.style.display = 'none'}
+                        alt="Photo de profil"
+                    />
+                ) : (
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-3xl font-semibold">
+                        {user?.prenom?.[0]?.toUpperCase() || user?.nom?.[0]?.toUpperCase()}
+                    </div>
+                )}
+                
                 <div className="text-center">
-                    <p className="text-white text-xl font-semibold">{user?.nom}</p>
+                    <p className="text-white text-xl font-semibold">
+                        {user?.prenom} {user?.nom}
+                    </p>
                     <p className="text-gray-400 text-sm">{user?.email}</p>
                 </div>
 
@@ -57,7 +72,7 @@ export default function Profile() {
 
                 <button
                     onClick={seDeconnecter}
-                    className="border border-gray-600 text-gray-400 text-sm rounded-full px-6 py-2"
+                    className="border border-gray-600 text-gray-400 text-sm rounded-full px-6 py-2 hover:border-red-500 hover:text-red-400 transition-colors"
                 >
                     Se déconnecter
                 </button>
@@ -70,7 +85,10 @@ export default function Profile() {
                 <p className="text-white font-semibold mb-4">Mes publications</p>
                 {loading && <p className="text-gray-400 text-sm">Chargement...</p>}
                 {!loading && posts.length === 0 && (
-                    <p className="text-gray-400 text-sm text-center">Aucune publication</p>
+                    <div className="text-center py-12">
+                        <p className="text-gray-400 text-sm">Aucune publication</p>
+                        <p className="text-gray-500 text-xs mt-1">Partagez quelque chose pour commencer !</p>
+                    </div>
                 )}
                 <div className="flex flex-col gap-4">
                     {posts.map(post => (
@@ -91,6 +109,7 @@ export default function Profile() {
                                     <img
                                         src={post.contenu}
                                         className="w-full object-cover"
+                                        alt="Publication"
                                         onError={(e) => e.target.style.display = 'none'}
                                     />
                                 </div>
