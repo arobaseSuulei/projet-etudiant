@@ -9,6 +9,7 @@ const messagesInboxRouter = require('./routes/messages_inbox');
 const invitationsRouter = require('./routes/invitations')
 const amisRouter = require('./routes/amis');
 const rechercherUtilisateurRouter = require('./routes/rechercher_utilisateur');
+const profileRouter = require('./routes/profile');
 
 const app = express();
 app.use(express.json());
@@ -22,6 +23,7 @@ app.use('/messages', messagesInboxRouter);
 app.use('/invitations', invitationsRouter);
 app.use('/amis', amisRouter);
 app.use('/recherche', rechercherUtilisateurRouter);
+app.use('/profile', profileRouter);
 
 
 app.get('/test', async (req, res) => {
