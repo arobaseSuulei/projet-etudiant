@@ -4,7 +4,7 @@ export default function NavbarPhone({ onPublier }) {
 
 
     return (
-        <div className=" text-white border-t border-gray-200 pt-2 sm:hidden items-center justify-center  flex text-xs gap-2 fixed sm:static bottom-0 left-0 w-full">
+        <div className=" text-white bg-[#1c1c1e] pt-2 sm:hidden items-center justify-center  flex text-xs gap-2 fixed sm:static bottom-0 left-0 w-full">
 
 
 
