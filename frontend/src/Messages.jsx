@@ -144,7 +144,7 @@ export default function Messages() {
             
             const data = await res.json();
             if (res.ok) {
-                alert("✅ Invitation envoyée !");
+                console.log("✅ Invitation envoyée !");
                 setResultats(prev => prev.filter(r => r.id_etudiant !== recepteurId));
                 // Forcer un rafraîchissement des invitations côté destinataire (via polling)
             } else {
