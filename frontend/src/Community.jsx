@@ -137,7 +137,7 @@ export default function Community() {
                     <img
                         src={c.photo_groupe}
                         alt={c.nom_communaute}
-                        className="w-14 h-14 rounded-full object-cover flex-shrink-0"
+                        className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
                         onError={(e) => e.target.style.display = 'none'}
                     />
                     <div className="flex-1 min-w-0">
