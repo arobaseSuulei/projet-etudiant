@@ -25,7 +25,7 @@ app.use('/invitations', invitationsRouter);
 app.use('/amis', amisRouter);
 app.use('/recherche', rechercherUtilisateurRouter);
 app.use('/profile', profileRouter);
-app.use('/messages/groupe', messagesGroupeRouter);
+app.use('/group-chat', messagesGroupeRouter);
 
 
 app.get('/test', async (req, res) => {

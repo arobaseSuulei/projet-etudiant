@@ -10,19 +10,20 @@ router.post('/', authenticateToken, async (req, res) => {
   const userId = req.user.id;
 
   // 1. Créer la communauté
-  const { data: communaute, error: createError } = await supabase
-    .from('communautes')
-    .insert([{
-      nom_communaute: nom_communaute,
-      description_communaute: description_communaute,
-      photo_groupe: photo_groupe || null,
-      id_createur: userId
-    }])
-    .select();
+const insertData = {
+  nom_communaute: nom_communaute,
+  description_communaute: description_communaute,
+  id_createur: userId
+};
 
-  if (createError) {
-    return res.status(400).json({ error: createError.message });
-  }
+if (photo_groupe) {
+  insertData.photo_groupe = photo_groupe;
+}
+
+const { data: communaute, error: createError } = await supabase
+  .from('communautes')
+  .insert([insertData])
+  .select();
 
   // 2. Ajouter le créateur comme membre
   const { error: memberError } = await supabase
