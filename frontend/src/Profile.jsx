@@ -107,8 +107,7 @@ export default function Profile() {
                         <p className="text-gray-400 text-xs">Publications</p>
                     </div>
                     <div className="text-center">
-                        <p className="text-white font-semibold text-lg">{profil.en_ligne ? '🟢' : '⚫'}</p>
-                        <p className="text-gray-400 text-xs">En ligne</p>
+                        
                     </div>
                 </div>
 

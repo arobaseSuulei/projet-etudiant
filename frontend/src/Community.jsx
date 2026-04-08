@@ -80,7 +80,7 @@ const userId = user?.id || user?.id_etudiant; // Prend l'un ou l'autre
             body: JSON.stringify({ 
                 nom_communaute: nom, 
                 description_communaute: description,
-                photo_groupe: photoGroupe || null
+                photo_groupe: photoGroupe || "https://img.freepik.com/premium-vector/outline-neon-community-icon-glowing-neon-team-work-collaboration-social-group-pictogram-business_894188-1992.jpg"
             })
         });
 
