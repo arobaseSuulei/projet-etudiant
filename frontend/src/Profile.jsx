@@ -102,13 +102,16 @@ export default function Profile() {
                 </div>
 
                 <div className="flex gap-8">
-                    <div className="text-center">
-                        <p className="text-white font-semibold text-lg">{posts.length}</p>
+                    <div className="flex justify-center gap-4 items-center">
+                        <nav className="flex flex-col items-center">
+                        <p className="text-white font-semibold text-lg">  {posts.length}</p>
                         <p className="text-gray-400 text-xs">Publications</p>
-                    </div>
-                    <div className="text-center">
+                        </nav>
+
+                        
                         
                     </div>
+                    
                 </div>
 
                 <button

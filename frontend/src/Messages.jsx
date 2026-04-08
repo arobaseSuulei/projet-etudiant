@@ -19,9 +19,7 @@ export default function Messages() {
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    
 
     // Charger les données au montage
     useEffect(() => {
@@ -228,7 +226,7 @@ export default function Messages() {
             .catch(err => console.error("Erreur chargement conversation:", err));
     };
 
-    const envoyerMessage = async () => {
+   const envoyerMessage = async () => {
     if (!texte.trim()) return;
     
     fetch(`http://localhost:3000/messages/envoyer/${destinataire.id_etudiant}`, {
@@ -242,12 +240,16 @@ export default function Messages() {
         .then(res => res.json())
         .then(data => {
             if (data.data) {
-                // Recharger toute la conversation comme dans les communautés
                 fetch(`http://localhost:3000/messages/conversation/${destinataire.id_etudiant}`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 })
                     .then(res => res.json())
-                    .then(conversation => setMessages(conversation.conversation ?? []))
+                    .then(conversation => {
+                        setMessages(conversation.conversation ?? []);
+                        setTimeout(() => {
+                            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                        }, 100);
+                    })
                     .catch(err => console.error("Erreur rechargement:", err));
                     
                 setTexte('');
@@ -257,6 +259,19 @@ export default function Messages() {
         })
         .catch(err => console.error("Erreur envoi message:", err));
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     const supprimerMessage = async (id_message) => {
         if (!window.confirm("Supprimer ce message ?")) return;
@@ -296,13 +311,7 @@ export default function Messages() {
             .catch(err => console.error("Erreur modification:", err));
     };
 
-    const heureDepuis = (date) => {
-        const diff = Math.floor((new Date() - new Date(date)) / 1000 / 60);
-        if (diff < 1) return "à l'instant";
-        if (diff < 60) return `${diff}min`;
-        if (diff < 1440) return `${Math.floor(diff / 60)}h`;
-        return `${Math.floor(diff / 1440)}j`;
-    };
+    const formatTime = (date) => new Date(date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
     return (
         <div className="flex h-screen bg-[#1c1c1e]">
@@ -544,12 +553,13 @@ export default function Messages() {
                         )}
                         
                         {messages.map(m => {
-                            const estMoi = m.id_emetteur === user?.id;
+                            console.log("id_emetteur:", m.id_emetteur, typeof m.id_emetteur, "user.id:", user?.id, typeof user?.id);
+                            const estMoi = Number(m.id_emetteur) === Number(user?.id_etudiant);
                             return (
-                                <div key={m.id_message} className={`flex ${estMoi ? 'justify-end' : 'justify-start'} group`}>
-                                    <div className={`max-w-[70%] sm:max-w-md relative ${!estMoi ? 'ml-2' : 'mr-2'}`}>
+                                <div key={m.id_message} className={`flex pb-20 ${estMoi ? 'justify-end' : 'justify-start'} group`}>
+                                    <div className={`max-w-[70%]   sm:max-w-md relative ${!estMoi ? 'ml-2' : 'mr-2'}`}>
                                         {messageEnCoursModif === m.id_message ? (
-                                            <div className="bg-[#2c2c2e] rounded-2xl p-2">
+                                            <div className="bg-[#2c2c2e]  rounded-2xl p-2">
                                                 <input
                                                     type="text"
                                                     defaultValue={m.text_message}
@@ -561,7 +571,7 @@ export default function Messages() {
                                                             setMessageEnCoursModif(null);
                                                         }
                                                     }}
-                                                    className="bg-[#3a3a3c] text-white text-sm rounded-xl px-3 py-2 outline-none w-full"
+                                                    className="bg-[#3a3a3c] text-white text-sm mb-52 rounded-xl px-3 py-2 outline-none w-full"
                                                     autoFocus
                                                 />
                                                 <div className="flex gap-2 justify-end mt-2">
@@ -581,7 +591,7 @@ export default function Messages() {
                                                 <div className={`px-4 py-2 rounded-2xl text-sm ${estMoi ? 'bg-purple-600 text-white rounded-br-sm' : 'bg-[#2c2c2e] text-white rounded-bl-sm'}`}>
                                                     {m.text_message}
                                                 </div>
-                                                <p className="text-gray-500 text-[10px] mt-1 px-1">{heureDepuis(m.date_message)}</p>
+                                                <p className="text-gray-500 text-[10px] mt-1 px-1">{formatTime(m.date_message)}</p>
                                             </>
                                         )}
                                         

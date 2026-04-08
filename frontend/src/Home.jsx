@@ -5,7 +5,7 @@ import Posts from "./Posts.jsx";
 export default function Home({ refreshRef }) {
     return (
         <div className="bg-[#1c1c1e]">
-            <TopBar />
+            
             <Posts onMounted={(fn) => { refreshRef.current = fn; }} />
         </div>
     );

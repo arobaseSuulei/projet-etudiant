@@ -27,9 +27,7 @@ export default function MessagesCommunaute() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+    
 
     useEffect(() => {
         fetch(`http://localhost:3000/communautes`)
@@ -140,6 +138,7 @@ export default function MessagesCommunaute() {
                 setTexte('');
                 cancelFile();
                 chargerMessages();
+                setTimeout(scrollToBottom,100);
             }
         } catch (err) {
             console.error("Erreur lors de l'envoi :", err);
@@ -225,7 +224,7 @@ export default function MessagesCommunaute() {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
     {messages.map((m) => {
-        const estMoi = m.id_emetteur === user?.id;
+        const estMoi = Number(m.id_emetteur) === Number(user?.id_etudiant);
         return (
             <div key={m.id_message} className={`flex ${estMoi ? 'justify-end' : 'justify-start'} group animate-fadeIn`}>
                 <div className={`relative max-w-[75%] p-3 rounded-2xl shadow-sm ${estMoi ? 'bg-purple-600 rounded-tr-none' : 'bg-gray-800 rounded-tl-none'}`}>
@@ -304,7 +303,7 @@ export default function MessagesCommunaute() {
                 </div>
             )}
 
-            <footer className="p-4 bg-[#1c1c1e] border-t border-gray-800 fixed bottom-0 w-full z-20">
+            <footer className="p-4 bg-[#1c1c1e] border-t border-gray-800">
                 <div className="max-w-4xl mx-auto flex items-center gap-3 bg-gray-900 rounded-2xl p-2 px-4 border border-transparent focus-within:border-purple-600 transition-all duration-300 shadow-inner">
                     <input type="file" id="fileInput" className="hidden" onChange={handleFileChange} accept="image/*,video/*,application/pdf" />
                     <button type="button" onClick={() => document.getElementById('fileInput').click()} className="text-gray-400 hover:text-purple-500 transition-colors p-1">
