@@ -200,61 +200,88 @@ export default function MessagesCommunaute() {
     return (
         <div className="flex flex-col h-screen bg-[#1c1c1e] text-white">
             <header className="p-4 border-b border-gray-800 flex items-center gap-4">
-                <button onClick={() => navigate("/community")} className="hover:text-purple-500 transition-colors text-xl">←</button>
-                <div>
-                    <h1 className="font-bold">{communaute?.nom_communaute}</h1>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest">Discussion</p>
-                </div>
-            </header>
+    <button 
+        onClick={() => navigate("/community")} 
+        className="hover:text-purple-500 transition-colors text-xl"
+    >
+        ←
+    </button>
+
+    {/* Photo de groupe */}
+    {communaute?.photo_groupe && (
+        <img 
+            src={communaute.photo_groupe} 
+            alt={communaute.nom_communaute} 
+            className="w-10 h-10 rounded-lg mb-68 object-cover"
+            onError={(e) => e.target.style.display = 'none'} // si pas de photo
+        />
+    )}
+
+    <div>
+        <h1 className="font-bold">{communaute?.nom_communaute}</h1>
+        <p className="text-[10px] text-gray-500 uppercase tracking-widest">Discussion</p>
+    </div>
+</header>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((m) => {
-                    const estMoi = m.id_emetteur === user?.id;
-                    return (
-                        <div key={m.id_message} className={`flex ${estMoi ? 'justify-end' : 'justify-start'} group animate-fadeIn`}>
-                            <div className={`relative max-w-[75%] p-3 rounded-2xl shadow-sm ${estMoi ? 'bg-purple-600 rounded-tr-none' : 'bg-gray-800 rounded-tl-none'}`}>
-                                {!estMoi && (
-                                    <p className="text-[10px] font-bold text-purple-400 mb-1">
-                                        {m.etudiants?.prenom_etudiant} {m.id_emetteur === idCreateur && "👑"}
-                                    </p>
-                                )}
-                                
-                                {messageEnCoursModif === m.id_message ? (
-                                    <input 
-                                        autoFocus
-                                        className="bg-black/20 outline-none p-1 rounded w-full border border-purple-400"
-                                        defaultValue={m.text_message}
-                                        onKeyDown={e => e.key === 'Enter' && modifierMessage(m.id_message, e.target.value)}
-                                    />
-                                ) : (
-                                    <div>
-                                        {m.media_url && (
-                                            <div className="mb-2 rounded-lg overflow-hidden border border-black/10">
-                                                {m.media_type === 'video' ? (
-                                                    <video src={m.media_url} controls className="max-w-full h-auto" />
-                                                ) : (
-                                                    <img src={m.media_url} className="max-w-full h-auto" alt="contenu" />
-                                                )}
-                                            </div>
-                                        )}
-                                        <p className="text-[14px] leading-relaxed">{m.text_message}</p>
-                                    </div>
-                                )}
-                                
-                                <span className="text-[9px] opacity-40 block mt-1 text-right">{formatTime(m.date_message)}</span>
-
-                                {estMoi && (
-                                    <div className="absolute -left-14 top-2 hidden group-hover:flex gap-2 bg-gray-900/80 p-1 rounded-lg backdrop-blur-sm">
-                                        <button onClick={() => setMessageEnCoursModif(m.id_message)} title="Modifier" className="hover:scale-110 transition-transform">✏️</button>
-                                        <button onClick={() => supprimerMessage(m.id_message, m.media_url)} title="Supprimer" className="hover:scale-110 transition-transform">🗑️</button>
-                                    </div>
-                                )}
-                            </div>
+    {messages.map((m) => {
+        const estMoi = m.id_emetteur === user?.id;
+        return (
+            <div key={m.id_message} className={`flex ${estMoi ? 'justify-end' : 'justify-start'} group animate-fadeIn`}>
+                <div className={`relative max-w-[75%] p-3 rounded-2xl shadow-sm ${estMoi ? 'bg-purple-600 rounded-tr-none' : 'bg-gray-800 rounded-tl-none'}`}>
+                    
+                    {!estMoi && (
+                        <div className="flex items-center gap-2 mb-1">
+                            <img
+                                src={m.etudiants?.photo_profil}
+                                className="w-6 h-6 rounded-full object-cover"
+                                alt="profil"
+                                onError={(e) => e.target.style.display = 'none'}
+                            />
+                            <p className="text-[10px] font-bold text-purple-400">
+                                {m.etudiants?.prenom_etudiant} {m.id_emetteur === idCreateur && "👑"}
+                            </p>
                         </div>
-                    );
-                })}
-                <div ref={messagesEndRef} />
+                    )}
+                    
+                    {messageEnCoursModif === m.id_message ? (
+                        <input 
+                            autoFocus
+                            className="bg-black/20 outline-none p-1 rounded w-full border border-purple-400"
+                            defaultValue={m.text_message}
+                            onKeyDown={e => e.key === 'Enter' && modifierMessage(m.id_message, e.target.value)}
+                        />
+                    ) : (
+                        <div>
+                            {m.media_url && (
+                                <div className="mb-2 rounded-lg overflow-hidden border border-black/10">
+                                    {m.media_type === 'video' ? (
+                                        <video src={m.media_url} controls className="max-w-full h-auto" />
+                                    ) : (
+                                        <img src={m.media_url} className="max-w-full h-auto" alt="contenu" />
+                                    )}
+                                </div>
+                            )}
+                            <p className="text-[14px] leading-relaxed">{m.text_message}</p>
+                        </div>
+                    )}
+                    
+                    <span className="text-[9px] opacity-40 block mt-1 text-right">
+                        {formatTime(m.date_message)}
+                    </span>
+
+                    {estMoi && (
+                        <div className="absolute -left-14 top-2 hidden group-hover:flex gap-2 bg-gray-900/80 p-1 rounded-lg backdrop-blur-sm">
+                            <button onClick={() => setMessageEnCoursModif(m.id_message)} title="Modifier" className="hover:scale-110 transition-transform">✏️</button>
+                            <button onClick={() => supprimerMessage(m.id_message, m.media_url)} title="Supprimer" className="hover:scale-110 transition-transform">🗑️</button>
+                        </div>
+                    )}
+                </div>
             </div>
+        );
+    })}
+    <div ref={messagesEndRef} />
+</div>
 
             {previewUrl && (
                 <div className="px-4 py-2 bg-gray-900 border-t border-gray-800 flex items-center gap-4 animate-slideUp">
@@ -277,7 +304,7 @@ export default function MessagesCommunaute() {
                 </div>
             )}
 
-            <footer className="p-4 bg-[#1c1c1e] border-t border-gray-800">
+            <footer className="p-4 bg-[#1c1c1e] border-t border-gray-800 fixed bottom-0 w-full z-20">
                 <div className="max-w-4xl mx-auto flex items-center gap-3 bg-gray-900 rounded-2xl p-2 px-4 border border-transparent focus-within:border-purple-600 transition-all duration-300 shadow-inner">
                     <input type="file" id="fileInput" className="hidden" onChange={handleFileChange} accept="image/*,video/*,application/pdf" />
                     <button type="button" onClick={() => document.getElementById('fileInput').click()} className="text-gray-400 hover:text-purple-500 transition-colors p-1">

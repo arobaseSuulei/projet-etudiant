@@ -40,6 +40,25 @@ export default function Messages() {
         return () => clearInterval(interval);
     }, [onglet, destinataire]);
 
+    useEffect(() => {
+    if (!destinataire) return;
+    
+    const interval = setInterval(() => {
+        fetch(`http://localhost:3000/messages/conversation/${destinataire.id_etudiant}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.conversation) {
+                    setMessages(data.conversation);
+                }
+            })
+            .catch(console.error);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+}, [destinataire, token]);
+
     // Charger la liste des amis (sont_amis = true)
     const chargerAmis = async () => {
         try {
@@ -210,27 +229,34 @@ export default function Messages() {
     };
 
     const envoyerMessage = async () => {
-        if (!texte.trim()) return;
-        
-        fetch(`http://localhost:3000/messages/envoyer/${destinataire.id_etudiant}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ text_message: texte })
+    if (!texte.trim()) return;
+    
+    fetch(`http://localhost:3000/messages/envoyer/${destinataire.id_etudiant}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ text_message: texte })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.data) {
+                // Recharger toute la conversation comme dans les communautés
+                fetch(`http://localhost:3000/messages/conversation/${destinataire.id_etudiant}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                })
+                    .then(res => res.json())
+                    .then(conversation => setMessages(conversation.conversation ?? []))
+                    .catch(err => console.error("Erreur rechargement:", err));
+                    
+                setTexte('');
+            } else {
+                alert(data.error || "Impossible d'envoyer le message");
+            }
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.data) {
-                    setMessages(prev => [...prev, data.data]);
-                    setTexte('');
-                } else {
-                    alert(data.error || "Impossible d'envoyer le message");
-                }
-            })
-            .catch(err => console.error("Erreur envoi message:", err));
-    };
+        .catch(err => console.error("Erreur envoi message:", err));
+};
 
     const supprimerMessage = async (id_message) => {
         if (!window.confirm("Supprimer ce message ?")) return;
