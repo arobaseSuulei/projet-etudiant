@@ -624,7 +624,7 @@ export default function Messages() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    <div className="flex items-center gap-3 px-4 py-3 border-t border-[#3a3a3c] bg-[#1c1c1e]">
+                    <div className="flex items-center gap-3 px-4 pb-20 py-3 border-t border-[#3a3a3c] bg-[#1c1c1e]">
                         <input
                             ref={inputRef}
                             type="text"

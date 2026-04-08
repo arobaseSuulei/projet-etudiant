@@ -303,7 +303,7 @@ export default function MessagesCommunaute() {
                 </div>
             )}
 
-            <footer className="p-4 bg-[#1c1c1e] border-t border-gray-800">
+            <footer className="p-4 bg-[#1c1c1e] pb-20 border-t border-gray-800">
                 <div className="max-w-4xl mx-auto flex items-center gap-3 bg-gray-900 rounded-2xl p-2 px-4 border border-transparent focus-within:border-purple-600 transition-all duration-300 shadow-inner">
                     <input type="file" id="fileInput" className="hidden" onChange={handleFileChange} accept="image/*,video/*,application/pdf" />
                     <button type="button" onClick={() => document.getElementById('fileInput').click()} className="text-gray-400 hover:text-purple-500 transition-colors p-1">
