@@ -104,7 +104,7 @@ router.get('/communautes/:id_communaute', authenticateToken, async (req, res) =>
 });
 
 // Supprimer un message (uniquement si on est l'émetteur)
-router.delete('/:id_message', authenticateToken, async (req, res) => {
+router.delete('/messages/:id_message', authenticateToken, async (req, res) => {
   const { id_message } = req.params;
   const userId = req.user.id;
 
@@ -135,7 +135,7 @@ router.delete('/:id_message', authenticateToken, async (req, res) => {
 });
 
 // Modifier un message (uniquement si on est l'émetteur)
-router.put('/:id_message', authenticateToken, async (req, res) => {
+router.put('/messages/:id_message', authenticateToken, async (req, res) => {
   const { id_message } = req.params;
   const { text_message } = req.body;
   const userId = req.user.id;
